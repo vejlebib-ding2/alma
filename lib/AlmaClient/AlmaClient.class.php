@@ -58,6 +58,8 @@ class AlmaClient {
     // the HTTP client out.
     $request = drupal_http_request(url($this->base_url . $method, array('query' => $params)));
 
+    dpm((url($this->base_url . $method, array('query' => $params))));
+
     $stopTime = explode(' ', microtime());
 
     // For use with a non-Drupal-system, we should have a way to swap
