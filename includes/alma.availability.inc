@@ -30,7 +30,14 @@ function alma_availability_holdings($provider_ids) {
 	$holding['holdings'] = array();
 	foreach( $record['holdings'] as $volume => $issues ) { 
 	  foreach($issues as $issue_no => $holds){
+	    $issue = array();
+	    $issue['branches'] = array();
 	    foreach( $holds as $key => $branch_holding) {
+
+	      if( !in_array( $branch_holding['branch_id'], $issue['branches'] ) ) {
+		$issue['branches'][] = $branch_holding['branch_id'];
+	      }
+
 	      $issue['local_id'] = $branch_holding['reservable'];
 	      $issue['reservable'] = (($branch_holding['status'] == 'availableForLoan') &&
 		((int) $branch_holding['total_count'] - (int) $branch_holding['reference_count']));	   

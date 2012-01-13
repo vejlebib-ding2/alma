@@ -14,7 +14,12 @@ function alma_reservation_pickup_branches($account) {
   // Throw exception if we're not logged in.
   ding_user_get_creds($account);
 
-  return alma_client_invoke('get_reservation_branches');
+  static $branches;
+  if( !isset($branches) ){
+    $branches = alma_client_invoke('get_reservation_branches');
+  }
+
+  return $branches;
 }
 
 /**
@@ -70,6 +75,44 @@ function alma_reservation_set_preferred_branch($account, $branch) {
    return $result;
  }
 
+/**
+ * Provide options for reservation.
+
+ * @TODO add preferred branch and expiry-date
+ */
+function alma_reservation_options($type, $account, $reservables) {
+  /*
+   * While we use ding_reservation for branch handling, we don't want to
+   * depend on the module, as it would mean that ding_reservation can't be
+   * disabled. So instead we throw an exception here.
+   */
+
+  //dpm($reservables);
+
+  if (!module_exists('ding_reservation')) {
+    throw new Exception('Alma reservation options requires ding_reservation.');
+  }  
+
+  $form = array();
+  $profile = ding_user_provider_profile($account);
+
+  $branches =  alma_reservation_pickup_branches($account);
+  // @todo; use local branches from issue - some migth not be available in all branches
+  //dpm($branches);
+
+  if(ding_user_is_provider_user($account)) {
+    $preferred_branch = 'hb';
+    // $preferred_branch = $profile->openruth_preferred_branch[field_language('profile2', $profile, 'openruth_preferred_branch')][0]['value'];
+  }
+  else {
+    //$preferred_branch = NULL;
+  }
+  
+  $form += ding_reservation_default_options_branch($type, 'alma_preferred_branch',$preferred_branch, $branches);
+
+  return $form;
+}
+
  /**
  * Create a reservation for a given account.
  */
@@ -80,6 +123,9 @@ function alma_reservation_create($account, $id, $branch, $expiry) {
   if (alma_reservation_exists($creds, $id)) {
     throw new DingProviderReservationExists();
   }
+
+  // @todo get expiry from user settings
+ $expiry = time() + (6 * 7 * 24 * 60 * 60); // 6 weeks
 
   // Build the reservation parameters to send.
   $params = array(
