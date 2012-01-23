@@ -129,8 +129,9 @@ function alma_client() {
 function alma_client_invoke($method) {
   $args = func_get_args();
   array_shift($args); // Lose the method.
-  $client = alma_client();
-
+  $client = alma_client(); 
+  
+  // @todo do not use try/catch. call_user_func_array returns false on failure
   try {
     $result = call_user_func_array(array($client, $method), $args);
   }
