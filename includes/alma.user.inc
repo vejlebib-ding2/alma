@@ -83,7 +83,7 @@ function alma_user_info($creds = NULL) {
   return (object)$info;
 }
 
-function alma_user_profile_form($form, $form_state) {
+/*function alma_user_profile_form($form, $form_state) {
   $status = alma_get_patron();
   $organisation = alma_get_organisation();
 
@@ -125,7 +125,7 @@ function alma_user_profile_form($form, $form_state) {
   unset($form['account']['current_pass_required_values']);
 
   return $form;
-}
+  }*/
 
 /**
  * Provider specific user profile form validate handler.
@@ -137,7 +137,7 @@ function alma_user_profile_form_validate($form, $form_state) {
 /**
  * Provider specific user profile form submit handler.
  */
-function alma_user_profile_form_submit($form, $form_state) {
+/*function alma_user_profile_form_submit($form, $form_state) {
   global $user;
 
   $updated = FALSE;
@@ -178,4 +178,4 @@ function alma_user_profile_form_submit($form, $form_state) {
     // Update local cache.
     alma_get_patron($creds, TRUE);
   }
-}
+  }*/

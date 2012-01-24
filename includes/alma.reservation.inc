@@ -10,9 +10,13 @@
 /**
  * Get list of pickup branches.
  */
-function alma_reservation_pickup_branches($account) {
+function alma_reservation_pickup_branches($account = null) {
+  if( !isset($account) ) {
+    global $user;
+    $account = $user;
+  }
   // Throw exception if we're not logged in.
-  ding_user_get_creds($account);
+  // ding_user_get_creds($account);
 
   static $branches;
   if( !isset($branches) ){
@@ -119,13 +123,16 @@ function alma_reservation_options($type, $account, $reservables) {
 function alma_reservation_create($account, $id, $branch, $expiry) {
   $creds = ding_user_get_creds($account);
 
+  dpm($account);
+
   // Check if the users has this reservation and throw exception.
   if (alma_reservation_exists($creds, $id)) {
     throw new DingProviderReservationExists();
   }
 
-  // @todo get expiry from user settings
+  // @todo get expiry from user profile2
  $expiry = time() + (6 * 7 * 24 * 60 * 60); // 6 weeks
+ //@todo get preferred branch from profile2
 
   // Build the reservation parameters to send.
   $params = array(
