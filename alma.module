@@ -239,15 +239,34 @@ function alma_form_user_profile_form_alter(&$form, &$form_state) {
   // Ensure that we're dealing with a provider user.
   if (!ding_user_is_provider_user($form_state['user'])) {
     return;
-  }
-
+  }  
   
+  /* $form['account']['mail']['#value'] = !empty($form['#user']->mail) ? $form['#user']->mail : 'testkrokodulle@dbc.dk';*/
 
   // only show pincode fields once (on the general account)
-  /* if( $form['#user_category'] != 'account' ){
+  if( $form['#user_category'] != 'account' ){
     unset($form['account']['pincode']);
-    }*/
- 
+  }
+
+  //@todo; max length of pincode is set in ding_user to be 4. alma pincode differs. 
+  //make a new pincode field
+
+  // below doesn't work - apparently ding_user/form_alter is called after alma/form_alter
+  /* no good
+     $form['account']['pincode'] = array(
+      '#type' => 'password_confirm',
+      '#size' => 32,
+      '#maxlength' => 32,
+      '#process' => array(
+        'form_process_password_confirm',
+        // Not adding user_form_process_password_confirm here, as it only adds
+        // the strength checker, which we don't want.
+        'ding_user_form_process_password_confirm',
+      ),
+      '#description' => t('To change the current pincode, enter the new pincode in both fields.'),      
+      );
+  */
+  
    /*  dpm($form_id);
   dpm($form);
   dpm($form_state);*/
@@ -255,11 +274,6 @@ function alma_form_user_profile_form_alter(&$form, &$form_state) {
   global $user;
   $profile2 = profile2_load_by_user($user, 'provider_alma');
 
-  dpm('ALMA PROFILE FORM ALTER');
-  dpm($form_state);
-  dpm($form);
-  dpm('ALMA PROFILE2');
-  dpm($profile2);
   
   // pjo attach profile2 form to get profile2 specific form eidt-fields.
   // fields could be shown by editing permission->profile2, but profile2 adds a tab and we don't want that.
@@ -269,6 +283,13 @@ function alma_form_user_profile_form_alter(&$form, &$form_state) {
   }
   // custom validator 
   //  $form['#validate'][] = 'alma_profile_form_validate';
+
+  
+  /*dpm('ALMA PROFILE FORM ALTER');
+  dpm($form_state);
+  dpm($form);
+  dpm('ALMA PROFILE2');
+  dpm($profile2);*/
 
   // testing - we might need another submit routine
   $form['#submit'][] = 'alma_test_submit';
@@ -283,8 +304,8 @@ function alma_form_user_profile_form_alter(&$form, &$form_state) {
   }*/
 
 function alma_test_submit(&$form, &$form_state) {
-  dpm('TESTSUBMIT');
-  dpm($form);
+  //  dpm('TESTSUBMIT');
+  //dpm($form);
 }
 
 
@@ -294,12 +315,35 @@ function alma_test_submit(&$form, &$form_state) {
  * Sends changes to Alma and updates profile with real values.
  */
 function alma_profile2_presave($profile) {
-  if ($profile->type == 'provider_alma' &&
-      !isset($profile->alma_init) &&
-      !empty($profile->original->alma_preferred_branch) &&
-      $profile->alma_preferred_branch != $profile->original->alma_preferred_branch) {
+  dpm($profile);
+
+  if( !$profile->type == 'provider_alma' ) {
+    return;
+  }
+
+  // providerfields: field_alma_preferred_branch, field_alma_interest_period, field_alma_reservation_pause
+  $langs = field_language('profile2', $profile);
+ 
+  // alma_preferred_branch
+  $org_value = $profile->original->preferred_branch[$langs['field_alma_preferred_branch']][0]['value'];
+  $new_value = $profile->preferred_branch[$langs['field_alma_preferred_branch']][0]['value'];
+  if( $org_value != $new_value ) {
+    $changes['preferred_branch'] = $new_value;
+  }
+
+  //@todo implement interest_period and reservation_pause
+
+  
+
+  
+
+
+  /* if ($profile->type == 'provider_alma' &&
+      // !isset($profile->alma_init) &&
+      !empty($profile->original->field_alma_preferred_branch) &&
+      $profile->field_alma_preferred_branch != $profile->original->field_alma_preferred_branch) {
     $langs = field_language('profile2', $profile);
-    $changes['preferred_branch'] = $profile->alma_preferred_branch[$langs['alma_preferred_branch']][0]['value'];
+    $changes['preferred_branch'] = $profile->field_alma_preferred_branch[$langs['field_alma_preferred_branch']][0]['value'];
 
     $creds = ding_user_get_creds($profile);
     $res = alma_client_invoke('update_userinfo', $creds['name'], $creds['pass'], $changes);
@@ -319,7 +363,7 @@ function alma_profile2_presave($profile) {
     if (($userStatus = _alma_user_status($creds, TRUE)) && isset($userStatus->userInfo)) {
       alma_profile_update($profile, $userStatus->userInfo);
     };
-  }
+    }*/
 }
 
 /**
@@ -327,7 +371,7 @@ function alma_profile2_presave($profile) {
  */
 function alma_profile2_view($profile, $view_mode, $langcode) {
   
-  dpm('TESTHEST');
+  // dpm('TESTHEST');
 
   $creds = ding_user_get_creds($profile);
   if (($userStatus = _alma_user_status($creds, TRUE)) && isset($userStatus->userInfo)) {

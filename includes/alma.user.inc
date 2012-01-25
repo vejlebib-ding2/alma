@@ -135,6 +135,24 @@ function alma_user_profile_form_validate($form, $form_state) {
 }
 
 /**
+ * update provider user;
+ * @invoked from: ding_user/ding_user_user_presave
+ * possible changes; email, pincode
+ */
+function alma_user_account_update($account, $changes) {
+  $creds = ding_user_get_creds($account);
+
+  if( isset($changes['mail']) ) {
+    $res = alma_client_invoke('change_email_address', $creds['name'], $creds['pass'], $account->mail, $changes['mail']);
+  }
+
+  if( isset($changes['pass']) ) {
+    //@todo; implement
+    dpm($changes);
+  }  
+}
+
+/**
  * Provider specific user profile form submit handler.
  */
 /*function alma_user_profile_form_submit($form, $form_state) {
