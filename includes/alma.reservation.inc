@@ -31,10 +31,10 @@ function alma_reservation_pickup_branches($account = null) {
  */
 function alma_reservation_set_preferred_branch($account, $branch) {
   // Throws an exception if we are not logged in.
-  $creds = ding_user_get_creds($account);
+   $creds = ding_user_get_creds($account);
 
   /**
-   * @todo Should call alma an update the branch in the library system (not sure
+   * @todo Should call alma and update the branch in the library system (not sure
    * if branch has the right format).
    */
   //alma_client_invoke('get_reservations', $creds['name'], $creds['pass'], $branch);

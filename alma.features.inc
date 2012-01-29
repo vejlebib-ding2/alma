@@ -18,7 +18,6 @@ function alma_default_profile2_type() {
     "data" : null
   }');
 
-  dpm($items);
   return $items;
 }
 

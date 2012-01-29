@@ -131,7 +131,7 @@ function alma_user_info($creds = NULL) {
  * Provider specific user profile form validate handler.
  */
 function alma_user_profile_form_validate($form, $form_state) {
-
+  dpm('VALIDATING');
 }
 
 /**
@@ -141,16 +141,44 @@ function alma_user_profile_form_validate($form, $form_state) {
  */
 function alma_user_account_update($account, $changes) {
   $creds = ding_user_get_creds($account);
-
+  
   if( isset($changes['mail']) ) {
-    $res = alma_client_invoke('change_email_address', $creds['name'], $creds['pass'], $account->mail, $changes['mail']);
+    // add, change or remove ?
+
+    // add email
+    if( !isset( $account->mail ) && !empty($changes['mail'] ) ) {
+      dpm('ADD MAIL');
+      $res = alma_client_invoke('add_email_address', $creds['name'], $creds['pass'], $changes['mail']);
+    }
+    // change email
+    elseif( isset( $account->mail ) && !empty($changes['mail'] ) ){
+      dpm('CHANGE MAIL');
+      $res = alma_client_invoke('change_email_address', $creds['name'], $creds['pass'], $account->mail, $changes['mail']);
+    }
+    // remove mail - email is required, so this will not happen
+    elseif(  isset( $account->mail ) && empty($changes['mail'] ) ) {
+      dpm('REMOVE MAIL');
+      $res = alma_client_invoke( 'remove_email_address', $creds['name'], $creds['pass'], $account->mail );
+    }
   }
 
   if( isset($changes['pass']) ) {
     //@todo; implement
-    dpm($changes);
-  }  
+    try{ $res = alma_client_invoke('change_pin', $creds['name'], $creds['pass'], $changes['pass']);}
+    catch(Exception $e){
+      dpm($e->getMessage());
+    }
+    if( $res ){
+      ding_user_save_creds(array('creds' => array('name' => $creds['name'], 'pass' => $changes['pass'], $account)));
+      $creds = ding_user_get_creds($account);
+      $creds['pass'] = $changes['pass'];
+      $updated = TRUE;
+      dpm($changes);
+      return 1;
+    }  
+  }
 }
+
 
 /**
  * Provider specific user profile form submit handler.
